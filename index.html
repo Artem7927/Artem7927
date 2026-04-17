@@ -444,7 +444,7 @@
       <div id="geoStatus" style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px;display:none;"></div>
       <div class="address-wrap">
         <textarea class="form-input" id="addressInput" rows="2"
-          placeholder="Улица, дом, квартира — или используйте кнопки выше"
+          placeholder="Начните вводить улицу, затем добавьте дом и квартиру"
           oninput="onAddressInput(this.value)"
           autocomplete="off"></textarea>
         <div class="autocomplete-list" id="autocompleteList" style="display:none;"></div>
@@ -888,12 +888,16 @@ function onAddressInput(val) {
 }
 
 function selectAddress(addr) {
-  document.getElementById('addressInput').value = addr;
+  const input = document.getElementById('addressInput');
+  input.value = addr + ', ';
+  input.focus();
+  // Ставим курсор в конец
+  input.selectionStart = input.selectionEnd = input.value.length;
   document.getElementById('autocompleteList').style.display = 'none';
   const status = document.getElementById('geoStatus');
   status.style.display = 'block';
-  status.style.color = 'green';
-  status.textContent = '✅ ' + addr;
+  status.style.color = 'var(--orange)';
+  status.textContent = '✏️ Добавьте номер дома и квартиру';
 }
 
 // Закрыть список если клик вне поля
