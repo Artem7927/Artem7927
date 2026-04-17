@@ -775,44 +775,35 @@ function confirmOrder() {
   const { total } = getStats();
   const comment = document.getElementById('commentInput').value.trim();
   const phone = forOther ? document.getElementById('phoneInput').value.trim() : null;
+  const chatId = tg?.initDataUnsafe?.user?.id || null;
 
-  const BOT_TOKEN = '8657189286:AAEQQwj3xFOYAHgNHKtLq9bSnaoW1F4DKf0';
-  const chatId = tg?.initDataUnsafe?.user?.id;
-
-  const orderData = JSON.stringify({
+  const orderData = {
     items, total, address, comment,
     pay_method: payMethod,
     for_other: forOther,
     recipient_phone: phone || null,
     chat_id: chatId,
-  });
+  };
 
-  if (!chatId) {
-    // Браузер — просто показываем успех
-    showScreen('success');
-    return;
-  }
-
-  // Отправляем заказ боту как специальное сообщение
   const btn = document.getElementById('confirmBtn');
   btn.disabled = true;
   btn.textContent = 'Отправляем...';
 
-  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+  const WEBHOOK = 'https://bonded-ditch-divisible.ngrok-free.app/order';
+
+  fetch(WEBHOOK, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: '🧾WEBAPP_ORDER🧾' + orderData,
-    })
+    body: JSON.stringify(orderData)
   })
   .then(r => r.json())
   .then(r => {
-    console.log('sent:', r);
+    console.log('order sent:', r);
     showScreen('success');
   })
   .catch(err => {
-    console.error(err);
+    console.error('order error:', err);
+    // Всё равно показываем успех клиенту
     showScreen('success');
   });
 }
