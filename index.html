@@ -859,10 +859,21 @@ let acTimer = null;
 async function searchAddress(query) {
   if (query.length < 3) return [];
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' Экибастуз')}&format=json&limit=5&accept-language=ru&countrycodes=kz`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' Экибастуз')}&format=json&limit=7&accept-language=ru&countrycodes=kz&addressdetails=1`;
     const r = await fetch(url, { headers: { 'User-Agent': 'YaYaChicken/1.0' } });
-    return await r.json();
+    const data = await r.json();
+    return data;
   } catch(e) { return []; }
+}
+
+function formatShortAddress(r) {
+  const a = r.address || {};
+  // Берём только улицу и номер дома если есть
+  const road = a.road || a.pedestrian || a.street || a.footway || '';
+  const house = a.house_number || '';
+  if (road) return house ? `${road}, ${house}` : road;
+  // Фоллбек — первые два слова display_name
+  return r.display_name.split(',').slice(0, 2).join(',').trim();
 }
 
 function onAddressInput(val) {
@@ -872,15 +883,18 @@ function onAddressInput(val) {
   acTimer = setTimeout(async () => {
     const results = await searchAddress(val);
     if (!results.length) { list.style.display = 'none'; return; }
-    list.innerHTML = results.map(r => {
-      // Форматируем адрес красиво
-      const a = r.address || {};
-      const parts = [
-        a.road || a.pedestrian || a.street || '',
-        a.house_number || '',
-        a.suburb || a.neighbourhood || '',
-      ].filter(Boolean);
-      const short = parts.length ? parts.join(', ') : r.display_name.split(',').slice(0,3).join(',');
+
+    // Убираем дубликаты по короткому адресу
+    const seen = new Set();
+    const unique = results.filter(r => {
+      const short = formatShortAddress(r);
+      if (seen.has(short)) return false;
+      seen.add(short);
+      return true;
+    });
+
+    list.innerHTML = unique.map(r => {
+      const short = formatShortAddress(r);
       return `<div class="autocomplete-item" onclick="selectAddress('${short.replace(/'/g, "\'")}')">📍 ${short}</div>`;
     }).join('');
     list.style.display = 'block';
@@ -891,7 +905,6 @@ function selectAddress(addr) {
   const input = document.getElementById('addressInput');
   input.value = addr + ', ';
   input.focus();
-  // Ставим курсор в конец
   input.selectionStart = input.selectionEnd = input.value.length;
   document.getElementById('autocompleteList').style.display = 'none';
   const status = document.getElementById('geoStatus');
