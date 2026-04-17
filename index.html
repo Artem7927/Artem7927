@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -457,89 +456,174 @@ if (tg) { tg.ready(); tg.expand(); }
 
 // ── МЕНЮ ──────────────────────────────────────────────────────────────
 const MENU = [
+  { id:'sets', name:'Сеты', emoji:'🎁', wide:true, items:[
+    {id:'s1',name:'СЕТ Большой',price:10290,desc:'Крылышки 20шт + Стрипсы 34шт + Фри 2л + Coca Cola 2л'},
+    {id:'s2',name:'СЕТ Средний',price:5890,desc:'Крылышки 30шт'},
+    {id:'s3',name:'КОМБО ПИЦЦА',price:14390,desc:'Пицца Ранч + Пицца 4 сыра + Пицца Пепперони + Фри н + Coca Cola 2л'},
+    {id:'s4',name:'КОМБО СЕМЕЙНЫЙ',price:16390,desc:'Крылышки 30шт + Фри 2л + Пицца YaYa 2л + соус томатный и сырный'},
+    {id:'s5',name:'ДЕТСКОЕ МЕНЮ',price:2690,desc:'Наггетсы 7шт + Фри + Сок 0.2л + Киндер 1шт'},
+  ]},
   { id:'wings', name:'Крылышки', emoji:'🍗', items:[
-    {id:'w1',name:'Крылышки 8 шт',price:1800},
-    {id:'w2',name:'Крылышки 16 шт',price:3400,desc:'+2 соуса'},
-    {id:'w3',name:'Крылышки 20 шт',price:4200,desc:'+2 соуса'},
-    {id:'w4',name:'Крылышки 30 шт',price:5900,desc:'+2 соуса'},
+    {id:'w1',name:'Крылышки 30 шт',price:5890},
+    {id:'w2',name:'Крылышки 20 шт',price:4490},
+    {id:'w3',name:'Крылышки 8 шт',price:2390},
+  ]},
+  { id:'strips', name:'Стрипсы', emoji:'🍖', items:[
+    {id:'st1',name:'Стрипсы 20 шт',price:4790},
+    {id:'st2',name:'Стрипсы 14 шт',price:3390},
+    {id:'st3',name:'Стрипсы 7 шт',price:2090},
   ]},
   { id:'pizza', name:'Пицца', emoji:'🍕', items:[
-    {id:'p1',name:'Пепперони',price:2690},
-    {id:'p2',name:'Маргарита',price:2690},
-    {id:'p3',name:'BBQ',price:3290},
-    {id:'p4',name:'Курица с грибами',price:3190},
-    {id:'p5',name:'4 сезона',price:3290},
-    {id:'p6',name:'Ya Ya',price:3290},
-    {id:'p7',name:'Мексика',price:3190},
-    {id:'p8',name:'Cheese',price:3290},
-    {id:'p9',name:'Ранч',price:3290},
+    {id:'p1',name:'Пицца YaYa',price:2990},
+    {id:'p2',name:'Пицца Ранч',price:2990},
+    {id:'p3',name:'Пицца Филадельфия',price:3290},
+    {id:'p4',name:'Пицца BBQ',price:3190},
+    {id:'p5',name:'Пицца Фаро',price:3190},
+    {id:'p6',name:'Пицца 4 сыра',price:2990},
+    {id:'p7',name:'Курица с грибами',price:2690},
+    {id:'p8',name:'Пепперони',price:2790},
+    {id:'p9',name:'Маргарита',price:2290},
+    {id:'p10',name:'Маргарита-Пепперони',price:2990},
+    {id:'p11',name:'Мексиканская острая',price:2990},
+    {id:'p12',name:'4 сезона',price:2690},
+    {id:'p13',name:'Сладкая Банан-Банан',price:2690},
   ]},
   { id:'burgers', name:'Бургеры', emoji:'🍔', items:[
     {id:'b1',name:'Гамбургер говяжий',price:1490},
-    {id:'b2',name:'Гамбургер куриный',price:1290},
-    {id:'b3',name:'Гамбургер x2 говяжий',price:1790},
-    {id:'b4',name:'Гамбургер x2 куриный',price:1490},
-    {id:'b5',name:'Чизбургер говяжий',price:1590},
-    {id:'b6',name:'Чизбургер говяжий x2',price:1990},
-    {id:'b7',name:'Чизбургер куриный',price:1390},
-    {id:'b8',name:'Чизбургер куриный x2',price:1790},
+    {id:'b2',name:'Гамбургер куриный',price:1390},
+    {id:'b3',name:'Чизбургер говяжий',price:1590},
+    {id:'b4',name:'Чизбургер куриный',price:1490},
+    {id:'b5',name:'Гамбургер x2 говяжий',price:1690},
+    {id:'b6',name:'Гамбургер x2 куриный',price:1690},
+    {id:'b7',name:'Чизбургер x2 говяжий',price:1890},
+    {id:'b8',name:'Чизбургер x2 куриный',price:1890},
     {id:'b9',name:'Гамбургер MIX',price:1790},
-    {id:'b10',name:'Чизбургер MIX',price:1890},
+    {id:'b10',name:'Чизбургер MIX',price:1990},
+    {id:'b11',name:'Гамбургер x2 MIX',price:2090},
   ]},
-  { id:'combos', name:'Комбо', emoji:'🎁', wide:true, items:[
-    {id:'c1',name:'Комбо Классик',price:9500,desc:'Крылышки 30шт + Пицца Пепперони + Фри + 2 соуса + Напиток 1л'},
-    {id:'c2',name:'Комбо YaYa',price:9300,desc:'Крылышки 20шт + Пицца Пепперони + Калифорния темпура + 2 соуса + Напиток 1л'},
-    {id:'c3',name:'Комбо №1',price:5200,desc:'Крылышки 20шт + Фри + 2 соуса + Напиток 1л'},
+  { id:'combos', name:'Комбо', emoji:'🎀', wide:true, items:[
+    {id:'c1',name:'КОМБО ЧИЗБУРГЕР говяжий',price:2790,desc:'Чизбургер говяжий + Фри + Coca Cola 1л'},
+    {id:'c2',name:'КОМБО ЧИЗБУРГЕР куриный',price:2690,desc:'Чизбургер куриный + Фри + Coca Cola 1л'},
+    {id:'c3',name:'БИГ КОМБО говяжий',price:9990,desc:'Чизбургер говяжий + Крылышки 3шт + Фри + Coca Cola 1л'},
+    {id:'c4',name:'БИГ КОМБО куриный',price:9790,desc:'Чизбургер куриный + Крылышки 3шт + Фри + Coca Cola 1л'},
+    {id:'c5',name:'КОМБО НА ДВОИХ говяжий',price:6590,desc:'Чизбургер говяжий + Крылышки 8шт + Фри + Coca Cola 1л'},
+    {id:'c6',name:'КОМБО НА ДВОИХ куриный',price:6390,desc:'Чизбургер куриный + Крылышки 8шт + Фри + Coca Cola 1л'},
+  ]},
+  { id:'doner', name:'Донеры', emoji:'🌯', items:[
+    {id:'dn1',name:'Донер куриный',price:1590},
+    {id:'dn2',name:'Донер говяжий',price:1790},
+    {id:'dn3',name:'Донер MIX',price:1690},
+    {id:'dn4',name:'Багет куриный',price:1790},
+    {id:'dn5',name:'Багет говяжий',price:1990},
+    {id:'dn6',name:'Багет MIX',price:1890},
+  ]},
+  { id:'doner_combos', name:'Донер комбо', emoji:'🥙', wide:true, items:[
+    {id:'dc1',name:'КОМБО ДОНЕР куриный',price:2790,desc:'Донер куриный + Фри + Coca Cola 0.5л'},
+    {id:'dc2',name:'КОМБО ДОНЕР говяжий',price:2890,desc:'Донер говяжий + Фри + Coca Cola 0.5л'},
+    {id:'dc3',name:'КОМБО ДОНЕР MIX',price:2790,desc:'Донер MIX + Фри + Coca Cola 0.5л'},
+    {id:'dc4',name:'КОМБО БАГЕТ куриный',price:2790,desc:'Багет куриный + Фри + Coca/Soda 0.5л'},
+    {id:'dc5',name:'КОМБО БАГЕТ говяжий',price:2990,desc:'Багет говяжий + Фри + Coca/Soda 0.5л'},
+    {id:'dc6',name:'КОМБО БАГЕТ MIX',price:2890,desc:'Багет MIX + Фри + Coca/Soda 0.5л'},
+    {id:'dc7',name:'КОМБО ЕКУЕҮ говяжий донер',price:7090,desc:'Донер говяжий 2шт + Крылышки 8шт + Фри + Coca Cola 0.5л'},
+    {id:'dc8',name:'КОМБО НА ДВОИХ куриный донер',price:6890,desc:'Донер куриный 2шт + Крылышки 8шт + Фри + Coca Cola 0.5л'},
   ]},
   { id:'snacks', name:'Закуски', emoji:'🍟', items:[
-    {id:'s1',name:'Фри',price:890},
-    {id:'s2',name:'Наггетсы',price:1290},
-    {id:'s3',name:'Соус томатный',price:200},
-    {id:'s4',name:'Соус сырный',price:200},
-    {id:'s5',name:'Соус чесночный',price:200},
-    {id:'s6',name:'Соус барбекю',price:200},
+    {id:'sn1',name:'Фри',price:790},
+    {id:'sn2',name:'Наггетсы 7 шт',price:990},
+    {id:'sn3',name:'Сырные палочки 5 шт',price:1790},
+    {id:'sn4',name:'Соус сырный',price:150},
+    {id:'sn5',name:'Соус томатный',price:150},
+    {id:'sn6',name:'Соус халапеньо',price:150},
+    {id:'sn7',name:'Сырный кетчуп',price:150},
+  ]},
+  { id:'bliny', name:'Блины', emoji:'🥞', items:[
+    {id:'bl1',name:'Творожная вишня',price:890},
+    {id:'bl2',name:'Клубничный джем',price:890},
+    {id:'bl3',name:'Медовый орех',price:590},
+    {id:'bl4',name:'Шоколад',price:590},
+    {id:'bl5',name:'Клубничный',price:590},
+    {id:'bl6',name:'Тропикано',price:1190},
+    {id:'bl7',name:'Творожный',price:590},
+    {id:'bl8',name:'Банановое наслаждение',price:890},
+    {id:'bl9',name:'Блин с маслом',price:200},
+    {id:'bl10',name:'Блин со сметаной',price:300},
+    {id:'bl11',name:'Блин с сыром',price:790},
+    {id:'bl12',name:'Блин с яйцом',price:790},
+    {id:'bl13',name:'Блин с мясом',price:1150},
+    {id:'bl14',name:'Блин с курицей',price:1150},
+    {id:'bl15',name:'Блин деревенский',price:1250},
+    {id:'bl16',name:'Блин с грибами',price:1250},
+    {id:'bl17',name:'Блин дуэт',price:1090},
+    {id:'bl18',name:'Блин Курочка Ряба',price:1090},
+    {id:'bl19',name:'Блин гурман',price:1150},
   ]},
   { id:'drinks', name:'Напитки', emoji:'🥤', items:[
-    {id:'d1',name:'Coca Cola 0.5л',price:500},
-    {id:'d2',name:'Coca Cola 1л',price:850},
-    {id:'d3',name:'Fanta 0.5л',price:500},
-    {id:'d4',name:'Fanta 1л',price:850},
-    {id:'d5',name:'Fuse Tea 0.5л',price:500},
-    {id:'d6',name:'Fuse Tea 1л',price:850},
-    {id:'d7',name:'Bonaqua 0.5л',price:400},
-    {id:'d8',name:'Детский сок 0.2л',price:450},
-    {id:'d9',name:'Coca Cola разливная',price:500},
+    {id:'d1',name:'Coca Cola 1л',price:790},
+    {id:'d2',name:'Coca Cola 0.5л',price:490},
+    {id:'d3',name:'Coca Cola разливная',price:590},
+    {id:'d4',name:'Sprite 1л',price:790},
+    {id:'d5',name:'Sprite 0.5л',price:490},
+    {id:'d6',name:'Fanta 1л',price:790},
+    {id:'d7',name:'Fanta 0.5л',price:490},
+    {id:'d8',name:'Fuse Tea 1л',price:790},
+    {id:'d9',name:'Fuse Tea 0.5л',price:490},
   ]},
-  { id:'cocktails', name:'Коктейли', emoji:'🍦', items:[
+  { id:'coffee', name:'Кофе', emoji:'☕', items:[
+    {id:'cf1',name:'Американо',price:890},
+    {id:'cf2',name:'Капучино',price:990},
+    {id:'cf3',name:'Латте',price:1190},
+    {id:'cf4',name:'Латте Маккиато',price:1190},
+    {id:'cf5',name:'Горячий шоколад',price:1290},
+  ]},
+  { id:'cocktails', name:'Коктейли', emoji:'🥛', items:[
     {id:'k1',name:'Молочный',price:1190},
-    {id:'k2',name:'Шоколадный',price:1390},
-    {id:'k3',name:'Клубничный',price:1390},
-    {id:'k4',name:'Банановый',price:1390},
-    {id:'k5',name:'Сникерс',price:1490},
-    {id:'k6',name:'Буэно',price:1490},
-    {id:'k7',name:'Орео',price:1490},
+    {id:'k2',name:'Шоколадный',price:1290},
+    {id:'k3',name:'Клубничный',price:1290},
+    {id:'k4',name:'Сникерс',price:1290},
+    {id:'k5',name:'Баунти',price:1290},
+    {id:'k6',name:'Орео',price:1290},
+    {id:'k7',name:'Банановый',price:1290},
+  ]},
+  { id:'mohito', name:'Мохито', emoji:'🍹', items:[
+    {id:'m1',name:'Мохито Классик стакан',price:690},
+    {id:'m2',name:'Мохито Клубника стакан',price:790},
+    {id:'m3',name:'Синяя волна стакан',price:890},
+    {id:'m4',name:'Мохито Классик 1л',price:1390},
+    {id:'m5',name:'Мохито Клубника 1л',price:1490},
+    {id:'m6',name:'Мохито Малина 1л',price:1490},
   ]},
   { id:'lemonade', name:'Лимонад', emoji:'🍋', items:[
-    {id:'l1',name:'Мохито стакан',price:890},
-    {id:'l2',name:'Мохито 1л',price:1690},
-    {id:'l3',name:'Киви лайм стакан',price:890},
-    {id:'l4',name:'Киви лайм 1л',price:1690},
-    {id:'l5',name:'Ягода микс стакан',price:890},
-    {id:'l6',name:'Ягода микс 1л',price:1690},
-    {id:'l7',name:'Манго маракуйя стакан',price:890},
-    {id:'l8',name:'Манго маракуйя 1л',price:1690},
-    {id:'l9',name:'Клубника маракуйя стакан',price:890},
-    {id:'l10',name:'Клубника маракуйя 1л',price:1690},
+    {id:'l1',name:'Классик стакан',price:890},
+    {id:'l2',name:'Клубника-Маракуйя стакан',price:790},
+    {id:'l3',name:'Цитрус стакан',price:790},
+    {id:'l4',name:'Киви стакан',price:790},
+    {id:'l5',name:'Киви-Маракуйя стакан',price:890},
+    {id:'l6',name:'Ягодный стакан',price:790},
+    {id:'l7',name:'Классик 1л',price:1390},
+    {id:'l8',name:'Цитрус 1л',price:1490},
+    {id:'l9',name:'Киви 1л',price:1490},
+    {id:'l10',name:'Клубника-Маракуйя 1л',price:1590},
+    {id:'l11',name:'Киви-Маракуйя 1л',price:1590},
+    {id:'l12',name:'Ягодный 1л',price:1490},
   ]},
-  { id:'tea', name:'Чай', emoji:'🫖', items:[
-    {id:'t1',name:'Чашка чая',price:300},
-    {id:'t2',name:'Чёрный/Зелёный чайник',price:790},
-    {id:'t3',name:'Марокканский чайник',price:1490},
-    {id:'t4',name:'Ташкентский чайник',price:1390},
-    {id:'t5',name:'Фруктовый чайник',price:1490},
-    {id:'t6',name:'Ягодный чайник',price:1490},
+  { id:'icetea', name:'Ice Tea / Чай', emoji:'🫖', items:[
+    {id:'it1',name:'Ice Tea Классик',price:590},
+    {id:'it2',name:'Ice Tea Малина',price:690},
+    {id:'it3',name:'Ice Tea Клубника',price:690},
+    {id:'it4',name:'Ice Tea Каркаде',price:690},
+    {id:'it5',name:'Чай стакан Чёрный/Зелёный',price:350},
+    {id:'it6',name:'Чай стакан Апельсиновый',price:690},
+    {id:'it7',name:'Чай стакан Малиновый',price:690},
+    {id:'it8',name:'Чай стакан Ягодный',price:690},
+    {id:'it9',name:'Чай чайник Чёрный/Зелёный',price:590},
+    {id:'it10',name:'Чай чайник Ташкентский',price:1290},
+    {id:'it11',name:'Чай чайник Марокканский',price:1290},
+    {id:'it12',name:'Чай чайник Фруктовый',price:1290},
+    {id:'it13',name:'Чай чайник Шиповник',price:1290},
+    {id:'it14',name:'Добавка Лимон/Молоко',price:200},
   ]},
 ];
+
 
 // ── КОРЗИНА ───────────────────────────────────────────────────────────
 const cart = {};
@@ -692,32 +776,47 @@ function confirmOrder() {
   const comment = document.getElementById('commentInput').value.trim();
   const phone = forOther ? document.getElementById('phoneInput').value.trim() : null;
 
-  const data = JSON.stringify({
-    items,
-    total,
-    address,
-    comment,
+  const BOT_TOKEN = '8657189286:AAEQQwj3xFOYAHgNHKtLq9bSnaoW1F4DKf0';
+  const chatId = tg?.initDataUnsafe?.user?.id;
+
+  const orderData = JSON.stringify({
+    items, total, address, comment,
     pay_method: payMethod,
     for_other: forOther,
     recipient_phone: phone || null,
+    chat_id: chatId,
   });
 
-  if (tg && tg.sendData) {
-    tg.sendData(data);
+  if (!chatId) {
+    // Браузер — просто показываем успех
     showScreen('success');
-  } else {
-    // В браузере показываем алерт для тестирования
-    alert('✅ Заказ оформлен!\n\n' +
-      items.map(i => `${i.name} x${i.qty} — ${(i.price*i.qty).toLocaleString('ru')} тг`).join('\n') +
-      `\n\nИтого: ${total.toLocaleString('ru')} тг` +
-      `\nАдрес: ${address}` +
-      `\nОплата: ${payMethod === 'cash' ? 'Наличные' : 'Kaspi/Карта'}` +
-      (comment ? `\nКомментарий: ${comment}` : '') +
-      (phone ? `\nТелефон: ${phone}` : '')
-    );
-    showScreen('success');
+    return;
   }
+
+  // Отправляем заказ боту как специальное сообщение
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Отправляем...';
+
+  fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: '🧾WEBAPP_ORDER🧾' + orderData,
+    })
+  })
+  .then(r => r.json())
+  .then(r => {
+    console.log('sent:', r);
+    showScreen('success');
+  })
+  .catch(err => {
+    console.error(err);
+    showScreen('success');
+  });
 }
+
 
 // ── РЕНДЕР МЕНЮ ──────────────────────────────────────────────────────
 function renderMenu() {
