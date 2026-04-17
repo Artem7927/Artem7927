@@ -355,6 +355,7 @@
   @keyframes pop { 0%{transform:scale(0)} 80%{transform:scale(1.1)} 100%{transform:scale(1)} }
   .success-title { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
   .success-sub { font-size: 15px; color: var(--text2); font-weight: 600; line-height: 1.5; }
+  .leaflet-control-attribution { display: none !important; }
 </style>
 </head>
 <body>
@@ -901,9 +902,9 @@ function toggleMap() {
   if (mapVisible && !map) {
     // Инициализируем карту — центр Экибастуз
     setTimeout(() => {
-      map = L.map('map').setView([51.7167, 75.3667], 13);
+      map = L.map('map', {attributionControl: false}).setView([51.7167, 75.3667], 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
+        attribution: '© <a href="https://www.openstreetmap.org">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
