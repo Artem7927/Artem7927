@@ -962,18 +962,47 @@ async function reverseGeocode(lat, lng) {
 }
 
 function getGeo() {
-  if (!navigator.geolocation) {
-    showGeoStatus('Геолокация не поддерживается', 'red');
+  showGeoStatus('⏳ Определяем местоположение...', 'var(--orange)');
+
+  // Сначала пробуем Telegram LocationManager (работает без доп. разрешений)
+  if (tg && tg.LocationManager) {
+    tg.LocationManager.init(() => {
+      if (tg.LocationManager.isLocationAvailable) {
+        tg.LocationManager.getLocation(async (loc) => {
+          if (loc) {
+            const addr = await reverseGeocode(loc.latitude, loc.longitude);
+            setAddress(addr);
+            if (map) {
+              map.setView([loc.latitude, loc.longitude], 17);
+              if (marker) marker.setLatLng([loc.latitude, loc.longitude]);
+              else marker = L.marker([loc.latitude, loc.longitude]).addTo(map);
+            }
+          } else {
+            fallbackGeo();
+          }
+        });
+      } else {
+        fallbackGeo();
+      }
+    });
     return;
   }
-  showGeoStatus('⏳ Определяем местоположение...', 'var(--orange)');
+
+  // Фоллбек — стандартный browser API
+  fallbackGeo();
+}
+
+function fallbackGeo() {
+  if (!navigator.geolocation) {
+    showGeoStatus('Геолокация недоступна. Введите адрес вручную или укажите на карте.', 'red');
+    return;
+  }
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
       const { latitude: lat, longitude: lng } = pos.coords;
       showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
       const addr = await reverseGeocode(lat, lng);
       setAddress(addr);
-      // Если карта открыта — переместить маркер
       if (map) {
         map.setView([lat, lng], 17);
         if (marker) marker.setLatLng([lat, lng]);
@@ -981,7 +1010,7 @@ function getGeo() {
       }
     },
     (err) => {
-      showGeoStatus('Не удалось определить местоположение. Введите адрес вручную.', 'red');
+      showGeoStatus('Не удалось определить. Укажите адрес на карте или введите вручную.', 'red');
     },
     { timeout: 10000, enableHighAccuracy: true }
   );
