@@ -963,38 +963,8 @@ async function reverseGeocode(lat, lng) {
 
 function getGeo() {
   showGeoStatus('⏳ Определяем местоположение...', 'var(--orange)');
-
-  // Сначала пробуем Telegram LocationManager (работает без доп. разрешений)
-  if (tg && tg.LocationManager) {
-    tg.LocationManager.init(() => {
-      if (tg.LocationManager.isLocationAvailable) {
-        tg.LocationManager.getLocation(async (loc) => {
-          if (loc) {
-            const addr = await reverseGeocode(loc.latitude, loc.longitude);
-            setAddress(addr);
-            if (map) {
-              map.setView([loc.latitude, loc.longitude], 17);
-              if (marker) marker.setLatLng([loc.latitude, loc.longitude]);
-              else marker = L.marker([loc.latitude, loc.longitude]).addTo(map);
-            }
-          } else {
-            fallbackGeo();
-          }
-        });
-      } else {
-        fallbackGeo();
-      }
-    });
-    return;
-  }
-
-  // Фоллбек — стандартный browser API
-  fallbackGeo();
-}
-
-function fallbackGeo() {
   if (!navigator.geolocation) {
-    showGeoStatus('Геолокация недоступна. Введите адрес вручную или укажите на карте.', 'red');
+    showGeoStatus('Геолокация недоступна. Укажите адрес на карте или введите вручную.', 'red');
     return;
   }
   navigator.geolocation.getCurrentPosition(
@@ -1003,16 +973,20 @@ function fallbackGeo() {
       showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
       const addr = await reverseGeocode(lat, lng);
       setAddress(addr);
-      if (map) {
-        map.setView([lat, lng], 17);
-        if (marker) marker.setLatLng([lat, lng]);
-        else marker = L.marker([lat, lng]).addTo(map);
-      }
+      // Открываем карту с пином на текущей позиции
+      if (!mapVisible) toggleMap();
+      setTimeout(() => {
+        if (map) {
+          map.setView([lat, lng], 17);
+          if (marker) marker.setLatLng([lat, lng]);
+          else marker = L.marker([lat, lng]).addTo(map);
+        }
+      }, 300);
     },
     (err) => {
       showGeoStatus('Не удалось определить. Укажите адрес на карте или введите вручную.', 'red');
     },
-    { timeout: 10000, enableHighAccuracy: true }
+    { timeout: 8000, enableHighAccuracy: false }
   );
 }
 
