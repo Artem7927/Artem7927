@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>YaYa Chicken</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
@@ -403,8 +405,20 @@
 
     <div class="form-block">
       <div class="form-label">📍 Адрес доставки</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button onclick="getGeo()" style="flex:1;padding:10px;background:var(--orange);color:white;border:none;border-radius:12px;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">
+          🎯 Моя геолокация
+        </button>
+        <button onclick="toggleMap()" id="mapToggleBtn" style="flex:1;padding:10px;background:var(--gray);color:var(--text);border:2px solid var(--gray2);border-radius:12px;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;cursor:pointer;">
+          🗺 Указать на карте
+        </button>
+      </div>
+      <div id="mapContainer" style="display:none;border-radius:12px;overflow:hidden;margin-bottom:10px;height:220px;border:2px solid var(--gray2);">
+        <div id="map" style="height:100%;width:100%;"></div>
+      </div>
+      <div id="geoStatus" style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px;display:none;"></div>
       <textarea class="form-input" id="addressInput" rows="2"
-        placeholder="Улица, дом, квартира"></textarea>
+        placeholder="Улица, дом, квартира — или используйте кнопки выше"></textarea>
     </div>
 
     <div class="form-block">
@@ -808,6 +822,104 @@ function confirmOrder() {
   });
 }
 
+
+// ── ГЕОЛОКАЦИЯ И КАРТА ───────────────────────────────────────────────
+let map = null;
+let marker = null;
+let mapVisible = false;
+
+function setAddress(addr) {
+  document.getElementById('addressInput').value = addr;
+  const status = document.getElementById('geoStatus');
+  status.style.display = 'block';
+  status.style.color = 'green';
+  status.textContent = '✅ ' + addr;
+}
+
+function showGeoStatus(msg, color) {
+  const status = document.getElementById('geoStatus');
+  status.style.display = 'block';
+  status.style.color = color || 'var(--text2)';
+  status.textContent = msg;
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ru`,
+      { headers: { 'User-Agent': 'YaYaChicken/1.0' } }
+    );
+    const data = await r.json();
+    const a = data.address || {};
+    const parts = [
+      a.road || a.pedestrian || a.street || '',
+      a.house_number || '',
+      a.suburb || a.neighbourhood || a.quarter || '',
+      a.city || a.town || a.village || '',
+    ].filter(Boolean);
+    return parts.join(', ') || data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  } catch(e) {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  }
+}
+
+function getGeo() {
+  if (!navigator.geolocation) {
+    showGeoStatus('Геолокация не поддерживается', 'red');
+    return;
+  }
+  showGeoStatus('⏳ Определяем местоположение...', 'var(--orange)');
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
+      const addr = await reverseGeocode(lat, lng);
+      setAddress(addr);
+      // Если карта открыта — переместить маркер
+      if (map) {
+        map.setView([lat, lng], 17);
+        if (marker) marker.setLatLng([lat, lng]);
+        else marker = L.marker([lat, lng]).addTo(map);
+      }
+    },
+    (err) => {
+      showGeoStatus('Не удалось определить местоположение. Введите адрес вручную.', 'red');
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+function toggleMap() {
+  const container = document.getElementById('mapContainer');
+  const btn = document.getElementById('mapToggleBtn');
+  mapVisible = !mapVisible;
+  container.style.display = mapVisible ? 'block' : 'none';
+  btn.style.background = mapVisible ? 'var(--orange-light)' : 'var(--gray)';
+  btn.style.borderColor = mapVisible ? 'var(--orange)' : 'var(--gray2)';
+  btn.style.color = mapVisible ? 'var(--orange)' : 'var(--text)';
+
+  if (mapVisible && !map) {
+    // Инициализируем карту — центр Экибастуз
+    setTimeout(() => {
+      map = L.map('map').setView([51.7167, 75.3667], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map);
+
+      map.on('click', async (e) => {
+        const { lat, lng } = e.latlng;
+        if (marker) marker.setLatLng([lat, lng]);
+        else marker = L.marker([lat, lng]).addTo(map);
+        showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
+        const addr = await reverseGeocode(lat, lng);
+        setAddress(addr);
+      });
+    }, 100);
+  } else if (mapVisible && map) {
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+}
 
 // ── РЕНДЕР МЕНЮ ──────────────────────────────────────────────────────
 function renderMenu() {
