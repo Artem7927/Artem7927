@@ -1,1 +1,787 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>YaYa Chicken</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  :root {
+    --orange: #F4821F;
+    --orange-dark: #D96A0A;
+    --orange-light: #FFF3E8;
+    --white: #ffffff;
+    --gray: #f5f5f5;
+    --gray2: #e8e8e8;
+    --text: #1a1a1a;
+    --text2: #666;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #f7f7f7;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* SCREENS */
+  .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
+  .screen.active { display: block; }
+
+  /* HEADER */
+  .header {
+    background: var(--orange);
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(244,130,31,0.3);
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .logo { font-size: 26px; font-weight: 900; color: white; letter-spacing: -1px; line-height: 1; }
+  .logo span { color: rgba(255,255,255,0.6); }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,0.8); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .back-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  /* CATEGORIES */
+  .cats {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: white;
+    border-bottom: 1px solid var(--gray2);
+    position: sticky;
+    top: 58px;
+    z-index: 99;
+  }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--gray2);
+    background: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .cat-btn.active { background: var(--orange); border-color: var(--orange); color: white; }
+
+  /* SECTION */
+  .section { padding: 0 16px 8px; }
+  .section-title { font-size: 18px; font-weight: 900; color: var(--text); padding: 16px 0 10px; }
+
+  /* GRID */
+  .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .item-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1.5px solid var(--gray2);
+    transition: transform 0.1s;
+  }
+  .item-card:active { transform: scale(0.97); }
+  .item-img-placeholder {
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, var(--orange-light) 0%, var(--gray2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+  .item-info { padding: 8px 10px 10px; }
+  .item-name { font-size: 13px; font-weight: 800; color: var(--text); line-height: 1.3; margin-bottom: 4px; min-height: 34px; }
+  .item-price { font-size: 15px; font-weight: 900; color: var(--orange); }
+  .item-add-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+
+  /* WIDE */
+  .items-list { display: flex; flex-direction: column; gap: 10px; }
+  .item-wide {
+    background: white;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--gray2);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .item-wide .item-img-placeholder { width: 80px; height: 80px; aspect-ratio: unset; border-radius: 12px; flex-shrink: 0; font-size: 28px; }
+  .item-wide-info { flex: 1; min-width: 0; }
+  .item-wide-info .item-name { min-height: unset; }
+  .item-wide-desc { font-size: 11px; color: var(--text2); font-weight: 600; margin-top: 2px; line-height: 1.3; }
+  .item-wide-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+
+  /* BUTTONS */
+  .btn-add {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--orange);
+    border: none; color: white;
+    font-size: 20px; font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .btn-add:active { transform: scale(0.9); background: var(--orange-dark); }
+  .qty-control { display: flex; align-items: center; gap: 6px; }
+  .qty-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--orange);
+    background: white; color: var(--orange);
+    font-size: 16px; font-weight: 900;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+  }
+  .qty-btn:active { background: var(--orange); color: white; }
+  .qty-num { font-size: 15px; font-weight: 900; min-width: 18px; text-align: center; }
+
+  /* CART BAR */
+  .cart-bar {
+    position: fixed; bottom: 16px; left: 16px; right: 16px;
+    z-index: 200; display: none;
+  }
+  .cart-bar.visible { display: block; }
+  .cart-btn {
+    width: 100%; padding: 16px 20px;
+    background: var(--orange); border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px; font-weight: 800;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(244,130,31,0.45);
+    transition: background 0.15s;
+  }
+  .cart-btn:active { background: var(--orange-dark); }
+  .cart-left { display: flex; align-items: center; gap: 10px; }
+  .cart-badge {
+    background: white; color: var(--orange);
+    border-radius: 50%; width: 26px; height: 26px;
+    font-size: 13px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── CART SCREEN ── */
+  .cart-screen { background: #f7f7f7; }
+  .cart-items { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .cart-item {
+    background: white;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1.5px solid var(--gray2);
+  }
+  .ci-emoji { font-size: 24px; flex-shrink: 0; }
+  .ci-info { flex: 1; min-width: 0; }
+  .ci-name { font-size: 14px; font-weight: 800; }
+  .ci-price { font-size: 13px; color: var(--text2); font-weight: 600; margin-top: 2px; }
+  .ci-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .ci-total { font-size: 15px; font-weight: 900; color: var(--orange); min-width: 60px; text-align: right; }
+
+  .cart-summary {
+    margin: 8px 16px 0;
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1.5px solid var(--gray2);
+  }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+  .summary-label { font-size: 14px; font-weight: 600; color: var(--text2); }
+  .summary-val { font-size: 14px; font-weight: 800; }
+  .summary-divider { height: 1px; background: var(--gray2); margin: 8px 0; }
+  .summary-total-label { font-size: 16px; font-weight: 900; }
+  .summary-total-val { font-size: 18px; font-weight: 900; color: var(--orange); }
+
+  .next-btn {
+    margin: 16px 16px 0;
+    width: calc(100% - 32px);
+    padding: 16px;
+    background: var(--orange);
+    border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(244,130,31,0.4);
+    transition: background 0.15s;
+  }
+  .next-btn:active { background: var(--orange-dark); }
+
+  /* ── ORDER SCREEN ── */
+  .order-screen { background: #f7f7f7; }
+  .order-form { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .form-block {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1.5px solid var(--gray2);
+  }
+  .form-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--gray2);
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--gray);
+    outline: none;
+    transition: border-color 0.15s;
+    resize: none;
+  }
+  .form-input:focus { border-color: var(--orange); background: white; }
+  .form-input::placeholder { color: #bbb; font-weight: 600; }
+
+  .pay-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pay-opt {
+    padding: 12px;
+    border: 2px solid var(--gray2);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text2);
+    transition: all 0.15s;
+    background: var(--gray);
+  }
+  .pay-opt.selected { border-color: var(--orange); background: var(--orange-light); color: var(--orange); }
+  .pay-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+
+  .for-other-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .toggle-label { font-size: 15px; font-weight: 700; }
+  .toggle {
+    width: 48px; height: 26px;
+    background: var(--gray2);
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--orange); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle.on::after { left: 25px; }
+
+  .confirm-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--orange);
+    border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(244,130,31,0.4);
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .confirm-btn:active { background: var(--orange-dark); }
+  .confirm-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+  /* SUCCESS */
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px;
+    text-align: center;
+    background: white;
+  }
+  .success-screen.active { display: flex; }
+  .success-emoji { font-size: 72px; margin-bottom: 16px; animation: pop 0.4s ease; }
+  @keyframes pop { 0%{transform:scale(0)} 80%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  .success-title { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+  .success-sub { font-size: 15px; color: var(--text2); font-weight: 600; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<!-- ── ЭКРАН 1: МЕНЮ ── -->
+<div class="screen active" id="screen-menu">
+  <div class="header">
+    <div class="header-left">
+      <div>
+        <div class="logo">Ya<span>Ya</span> 🍗</div>
+        <div class="header-sub">Chicken & Pizza · Экибастуз</div>
+      </div>
+    </div>
+  </div>
+  <div class="cats" id="cats"></div>
+  <div id="menu-content"></div>
+  <div class="cart-bar" id="cartBar">
+    <button class="cart-btn" onclick="goCart()">
+      <div class="cart-left">
+        <div class="cart-badge" id="cartCount">0</div>
+        <span>Корзина</span>
+      </div>
+      <div id="cartTotal" style="font-size:16px;font-weight:900;">0 тг</div>
+    </button>
+  </div>
+</div>
+
+<!-- ── ЭКРАН 2: КОРЗИНА ── -->
+<div class="screen cart-screen" id="screen-cart">
+  <div class="header">
+    <button class="back-btn" onclick="goMenu()">← Меню</button>
+    <div style="color:white;font-weight:900;font-size:17px;">Корзина</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-summary" id="cartSummary"></div>
+  <button class="next-btn" onclick="goOrder()">Оформить заказ →</button>
+</div>
+
+<!-- ── ЭКРАН 3: ОФОРМЛЕНИЕ ── -->
+<div class="screen order-screen" id="screen-order">
+  <div class="header">
+    <button class="back-btn" onclick="goCart()">← Корзина</button>
+    <div style="color:white;font-weight:900;font-size:17px;">Оформление</div>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="order-form">
+
+    <div class="form-block">
+      <div class="form-label">📍 Адрес доставки</div>
+      <textarea class="form-input" id="addressInput" rows="2"
+        placeholder="Улица, дом, квартира"></textarea>
+    </div>
+
+    <div class="form-block">
+      <div class="form-label">💬 Комментарий курьеру</div>
+      <textarea class="form-input" id="commentInput" rows="2"
+        placeholder="Домофон, этаж, время, пожелания..."></textarea>
+    </div>
+
+    <div class="form-block">
+      <div class="form-label">💳 Способ оплаты</div>
+      <div class="pay-options">
+        <div class="pay-opt selected" id="pay-cash" onclick="selectPay('cash')">
+          <span class="pay-emoji">💵</span>Наличные
+        </div>
+        <div class="pay-opt" id="pay-card" onclick="selectPay('card')">
+          <span class="pay-emoji">💳</span>Kaspi / Карта
+        </div>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <div class="for-other-toggle">
+        <span class="toggle-label">Заказ для другого человека</span>
+        <div class="toggle" id="otherToggle" onclick="toggleOther()"></div>
+      </div>
+      <div id="otherPhone" style="display:none;margin-top:12px;">
+        <input class="form-input" id="phoneInput" type="tel"
+          placeholder="Телефон получателя" style="height:48px;">
+      </div>
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmOrder()">
+      ✅ Подтвердить заказ
+    </button>
+
+  </div>
+</div>
+
+<!-- ── ЭКРАН 4: УСПЕХ ── -->
+<div class="screen success-screen" id="screen-success">
+  <div class="success-emoji">🎉</div>
+  <div class="success-title">Заказ принят!</div>
+  <div class="success-sub">Ждите ~45-60 минут.<br>Курьер свяжется с вами.</div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+// ── МЕНЮ ──────────────────────────────────────────────────────────────
+const MENU = [
+  { id:'wings', name:'Крылышки', emoji:'🍗', items:[
+    {id:'w1',name:'Крылышки 8 шт',price:1800},
+    {id:'w2',name:'Крылышки 16 шт',price:3400,desc:'+2 соуса'},
+    {id:'w3',name:'Крылышки 20 шт',price:4200,desc:'+2 соуса'},
+    {id:'w4',name:'Крылышки 30 шт',price:5900,desc:'+2 соуса'},
+  ]},
+  { id:'pizza', name:'Пицца', emoji:'🍕', items:[
+    {id:'p1',name:'Пепперони',price:2690},
+    {id:'p2',name:'Маргарита',price:2690},
+    {id:'p3',name:'BBQ',price:3290},
+    {id:'p4',name:'Курица с грибами',price:3190},
+    {id:'p5',name:'4 сезона',price:3290},
+    {id:'p6',name:'Ya Ya',price:3290},
+    {id:'p7',name:'Мексика',price:3190},
+    {id:'p8',name:'Cheese',price:3290},
+    {id:'p9',name:'Ранч',price:3290},
+  ]},
+  { id:'burgers', name:'Бургеры', emoji:'🍔', items:[
+    {id:'b1',name:'Гамбургер говяжий',price:1490},
+    {id:'b2',name:'Гамбургер куриный',price:1290},
+    {id:'b3',name:'Гамбургер x2 говяжий',price:1790},
+    {id:'b4',name:'Гамбургер x2 куриный',price:1490},
+    {id:'b5',name:'Чизбургер говяжий',price:1590},
+    {id:'b6',name:'Чизбургер говяжий x2',price:1990},
+    {id:'b7',name:'Чизбургер куриный',price:1390},
+    {id:'b8',name:'Чизбургер куриный x2',price:1790},
+    {id:'b9',name:'Гамбургер MIX',price:1790},
+    {id:'b10',name:'Чизбургер MIX',price:1890},
+  ]},
+  { id:'combos', name:'Комбо', emoji:'🎁', wide:true, items:[
+    {id:'c1',name:'Комбо Классик',price:9500,desc:'Крылышки 30шт + Пицца Пепперони + Фри + 2 соуса + Напиток 1л'},
+    {id:'c2',name:'Комбо YaYa',price:9300,desc:'Крылышки 20шт + Пицца Пепперони + Калифорния темпура + 2 соуса + Напиток 1л'},
+    {id:'c3',name:'Комбо №1',price:5200,desc:'Крылышки 20шт + Фри + 2 соуса + Напиток 1л'},
+  ]},
+  { id:'snacks', name:'Закуски', emoji:'🍟', items:[
+    {id:'s1',name:'Фри',price:890},
+    {id:'s2',name:'Наггетсы',price:1290},
+    {id:'s3',name:'Соус томатный',price:200},
+    {id:'s4',name:'Соус сырный',price:200},
+    {id:'s5',name:'Соус чесночный',price:200},
+    {id:'s6',name:'Соус барбекю',price:200},
+  ]},
+  { id:'drinks', name:'Напитки', emoji:'🥤', items:[
+    {id:'d1',name:'Coca Cola 0.5л',price:500},
+    {id:'d2',name:'Coca Cola 1л',price:850},
+    {id:'d3',name:'Fanta 0.5л',price:500},
+    {id:'d4',name:'Fanta 1л',price:850},
+    {id:'d5',name:'Fuse Tea 0.5л',price:500},
+    {id:'d6',name:'Fuse Tea 1л',price:850},
+    {id:'d7',name:'Bonaqua 0.5л',price:400},
+    {id:'d8',name:'Детский сок 0.2л',price:450},
+    {id:'d9',name:'Coca Cola разливная',price:500},
+  ]},
+  { id:'cocktails', name:'Коктейли', emoji:'🍦', items:[
+    {id:'k1',name:'Молочный',price:1190},
+    {id:'k2',name:'Шоколадный',price:1390},
+    {id:'k3',name:'Клубничный',price:1390},
+    {id:'k4',name:'Банановый',price:1390},
+    {id:'k5',name:'Сникерс',price:1490},
+    {id:'k6',name:'Буэно',price:1490},
+    {id:'k7',name:'Орео',price:1490},
+  ]},
+  { id:'lemonade', name:'Лимонад', emoji:'🍋', items:[
+    {id:'l1',name:'Мохито стакан',price:890},
+    {id:'l2',name:'Мохито 1л',price:1690},
+    {id:'l3',name:'Киви лайм стакан',price:890},
+    {id:'l4',name:'Киви лайм 1л',price:1690},
+    {id:'l5',name:'Ягода микс стакан',price:890},
+    {id:'l6',name:'Ягода микс 1л',price:1690},
+    {id:'l7',name:'Манго маракуйя стакан',price:890},
+    {id:'l8',name:'Манго маракуйя 1л',price:1690},
+    {id:'l9',name:'Клубника маракуйя стакан',price:890},
+    {id:'l10',name:'Клубника маракуйя 1л',price:1690},
+  ]},
+  { id:'tea', name:'Чай', emoji:'🫖', items:[
+    {id:'t1',name:'Чашка чая',price:300},
+    {id:'t2',name:'Чёрный/Зелёный чайник',price:790},
+    {id:'t3',name:'Марокканский чайник',price:1490},
+    {id:'t4',name:'Ташкентский чайник',price:1390},
+    {id:'t5',name:'Фруктовый чайник',price:1490},
+    {id:'t6',name:'Ягодный чайник',price:1490},
+  ]},
+];
+
+// ── КОРЗИНА ───────────────────────────────────────────────────────────
+const cart = {};
+let payMethod = 'cash';
+let forOther = false;
+
+function findItem(id) {
+  for (const cat of MENU) {
+    const item = cat.items.find(i => i.id === id);
+    if (item) return { ...item, emoji: cat.emoji };
+  }
+  return null;
+}
+
+function getStats() {
+  let total = 0, count = 0;
+  for (const [id, qty] of Object.entries(cart)) {
+    if (qty <= 0) continue;
+    const item = findItem(id);
+    if (item) { total += item.price * qty; count += qty; }
+  }
+  return { total, count };
+}
+
+function addItem(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCard(id); updateCartBar();
+}
+function removeItem(id) {
+  cart[id] = Math.max(0, (cart[id] || 0) - 1);
+  updateCard(id); updateCartBar();
+}
+
+function updateCard(id) {
+  const qty = cart[id] || 0;
+  const el = document.getElementById('add-' + id);
+  if (!el) return;
+  if (qty === 0) {
+    el.innerHTML = `<button class="btn-add" onclick="addItem('${id}')">+</button>`;
+  } else {
+    el.innerHTML = `<div class="qty-control">
+      <button class="qty-btn" onclick="removeItem('${id}')">−</button>
+      <span class="qty-num">${qty}</span>
+      <button class="qty-btn" onclick="addItem('${id}')">+</button>
+    </div>`;
+  }
+}
+
+function updateCartBar() {
+  const { total, count } = getStats();
+  const bar = document.getElementById('cartBar');
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = total.toLocaleString('ru') + ' тг';
+  bar.classList.toggle('visible', count > 0);
+}
+
+// ── НАВИГАЦИЯ ──────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goMenu() { showScreen('menu'); }
+
+function goCart() {
+  renderCart();
+  showScreen('cart');
+}
+
+function goOrder() { showScreen('order'); }
+
+// ── РЕНДЕР КОРЗИНЫ ──────────────────────────────────────────────────
+function renderCart() {
+  const items = [];
+  for (const [id, qty] of Object.entries(cart)) {
+    if (qty <= 0) continue;
+    const item = findItem(id);
+    if (item) items.push({ ...item, qty });
+  }
+
+  const { total } = getStats();
+  const delivery = 0; // пока бесплатно
+
+  const listEl = document.getElementById('cartItems');
+  listEl.innerHTML = items.map(item => `
+    <div class="cart-item">
+      <div class="ci-emoji">${item.emoji}</div>
+      <div class="ci-info">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-price">${item.price.toLocaleString('ru')} тг × ${item.qty}</div>
+      </div>
+      <div class="ci-right">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="removeItem('${item.id}');renderCart()">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="addItem('${item.id}');renderCart()">+</button>
+        </div>
+        <div class="ci-total">${(item.price * item.qty).toLocaleString('ru')} тг</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('cartSummary').innerHTML = `
+    <div class="summary-row">
+      <span class="summary-label">Позиций</span>
+      <span class="summary-val">${items.reduce((a,i)=>a+i.qty,0)} шт</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Доставка</span>
+      <span class="summary-val" style="color:green">${delivery === 0 ? 'Бесплатно' : delivery + ' тг'}</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-row">
+      <span class="summary-total-label">Итого</span>
+      <span class="summary-total-val">${(total + delivery).toLocaleString('ru')} тг</span>
+    </div>`;
+}
+
+// ── ОПЛАТА / ПОЛУЧАТЕЛЬ ───────────────────────────────────────────────
+function selectPay(method) {
+  payMethod = method;
+  document.getElementById('pay-cash').classList.toggle('selected', method === 'cash');
+  document.getElementById('pay-card').classList.toggle('selected', method === 'card');
+}
+
+function toggleOther() {
+  forOther = !forOther;
+  document.getElementById('otherToggle').classList.toggle('on', forOther);
+  document.getElementById('otherPhone').style.display = forOther ? 'block' : 'none';
+}
+
+// ── ПОДТВЕРЖДЕНИЕ ──────────────────────────────────────────────────────
+function confirmOrder() {
+  const address = document.getElementById('addressInput').value.trim();
+  if (!address) {
+    document.getElementById('addressInput').focus();
+    document.getElementById('addressInput').style.borderColor = 'red';
+    setTimeout(() => document.getElementById('addressInput').style.borderColor = '', 1500);
+    return;
+  }
+
+  const items = [];
+  for (const [id, qty] of Object.entries(cart)) {
+    if (qty <= 0) continue;
+    const item = findItem(id);
+    if (item) items.push({ name: item.name, price: item.price, qty });
+  }
+
+  const { total } = getStats();
+  const comment = document.getElementById('commentInput').value.trim();
+  const phone = forOther ? document.getElementById('phoneInput').value.trim() : null;
+
+  const data = JSON.stringify({
+    items,
+    total,
+    address,
+    comment,
+    pay_method: payMethod,
+    for_other: forOther,
+    recipient_phone: phone || null,
+  });
+
+  if (tg && tg.sendData) {
+    tg.sendData(data);
+    showScreen('success');
+  } else {
+    // В браузере показываем алерт для тестирования
+    alert('✅ Заказ оформлен!\n\n' +
+      items.map(i => `${i.name} x${i.qty} — ${(i.price*i.qty).toLocaleString('ru')} тг`).join('\n') +
+      `\n\nИтого: ${total.toLocaleString('ru')} тг` +
+      `\nАдрес: ${address}` +
+      `\nОплата: ${payMethod === 'cash' ? 'Наличные' : 'Kaspi/Карта'}` +
+      (comment ? `\nКомментарий: ${comment}` : '') +
+      (phone ? `\nТелефон: ${phone}` : '')
+    );
+    showScreen('success');
+  }
+}
+
+// ── РЕНДЕР МЕНЮ ──────────────────────────────────────────────────────
+function renderMenu() {
+  const catsEl = document.getElementById('cats');
+  MENU.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = cat.emoji + ' ' + cat.name;
+    btn.onclick = () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('sec-' + cat.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    catsEl.appendChild(btn);
+  });
+
+  const content = document.getElementById('menu-content');
+  MENU.forEach(cat => {
+    const sec = document.createElement('div');
+    sec.className = 'section';
+    sec.id = 'sec-' + cat.id;
+    sec.innerHTML = `<div class="section-title">${cat.emoji} ${cat.name}</div>`;
+
+    if (cat.wide) {
+      const list = document.createElement('div');
+      list.className = 'items-list';
+      cat.items.forEach(item => {
+        list.innerHTML += `
+          <div class="item-wide">
+            <div class="item-img-placeholder" style="width:80px;height:80px;aspect-ratio:unset;border-radius:12px;flex-shrink:0;font-size:28px;background:linear-gradient(135deg,#FFF3E8,#e8e8e8);display:flex;align-items:center;justify-content:center;">${cat.emoji}</div>
+            <div class="item-wide-info">
+              <div class="item-name">${item.name}</div>
+              ${item.desc ? `<div class="item-wide-desc">${item.desc}</div>` : ''}
+              <div class="item-wide-bottom">
+                <div class="item-price">${item.price.toLocaleString('ru')} тг</div>
+                <div id="add-${item.id}"><button class="btn-add" onclick="addItem('${item.id}')">+</button></div>
+              </div>
+            </div>
+          </div>`;
+      });
+      sec.appendChild(list);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'items-grid';
+      cat.items.forEach(item => {
+        grid.innerHTML += `
+          <div class="item-card">
+            <div class="item-img-placeholder">${cat.emoji}</div>
+            <div class="item-info">
+              <div class="item-name">${item.name}</div>
+              <div class="item-add-row">
+                <div class="item-price">${item.price.toLocaleString('ru')} тг</div>
+                <div id="add-${item.id}"><button class="btn-add" onclick="addItem('${item.id}')">+</button></div>
+              </div>
+            </div>
+          </div>`;
+      });
+      sec.appendChild(grid);
+    }
+    content.appendChild(sec);
+  });
+}
+
+renderMenu();
+</script>
+</body>
+</html>
