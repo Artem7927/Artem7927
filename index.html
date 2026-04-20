@@ -999,7 +999,7 @@ async function reverseGeocode(lat, lng) {
       a.suburb || a.neighbourhood || a.quarter || '',
       a.city || a.town || a.village || '',
     ].filter(Boolean);
-    return parts.join(', ') || data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    return parts.join(', ') || data.display_name?.split(',').slice(0,3).join(',').trim() || '';
   } catch(e) {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   }
@@ -1063,10 +1063,9 @@ function toggleMap() {
         L.polygon(z.pts, {
           color: z.color, weight: 2,
           fillColor: z.color, fillOpacity: 0.10,
-          dashArray: '6,4'
-        }).addTo(map).bindPopup(
-          `<b>Доставка: ${z.price}</b>`
-        );
+          dashArray: '6,4',
+          interactive: false
+        }).addTo(map);
       });
 
       // Определяем зону по координатам
@@ -1099,7 +1098,18 @@ function toggleMap() {
         else marker = L.marker([lat, lng]).addTo(map);
         showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
         const addr = await reverseGeocode(lat, lng);
-        setAddress(addr, lat, lng);
+        if (addr) {
+          setAddress(addr, lat, lng);
+        } else {
+          // Адрес не найден в базе — показываем подсказку и зону
+          const zone = getDeliveryZone(lat, lng);
+          const zoneText = zone ? ' — доставка ' + zone.price : ' — вне зоны доставки';
+          const status = document.getElementById('geoStatus');
+          status.style.display = 'block';
+          status.style.color = zone ? 'var(--orange)' : 'red';
+          status.textContent = '✏️ Адрес не найден, введите вручную' + zoneText;
+          if (zone) deliveryCost = zone.cost;
+        }
       });
     }, 100);
   } else if (mapVisible && map) {
