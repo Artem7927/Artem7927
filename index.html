@@ -671,6 +671,7 @@ const MENU = [
 
 // ── КОРЗИНА ───────────────────────────────────────────────────────────
 const cart = {};
+let deliveryCost = 0;
 let payMethod = 'cash';
 let forOther = false;
 
@@ -921,17 +922,60 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ── ЗОНЫ ДОСТАВКИ ────────────────────────────────────────────────────
+const DELIVERY_ZONES_DATA = [
+  {price:'600 тг',  cost:600,  color:'#2ecc71', pts:[[51.731028,75.309551],[51.733304,75.321793],[51.721900,75.327497],[51.719624,75.315255]]},
+  {price:'700 тг',  cost:700,  color:'#f1c40f', pts:[[51.735592,75.300578],[51.740143,75.325062],[51.717336,75.336470],[51.712784,75.311986]]},
+  {price:'800 тг',  cost:800,  color:'#9b59b6', pts:[[51.740156,75.291604],[51.746983,75.328332],[51.712771,75.345444],[51.705945,75.308716]]},
+  {price:'900 тг',  cost:900,  color:'#3498db', pts:[[51.744720,75.282631],[51.753822,75.331601],[51.708207,75.354417],[51.699105,75.305447]]},
+  {price:'1000 тг', cost:1000, color:'#F4821F', pts:[[51.749284,75.273658],[51.760662,75.334870],[51.703643,75.363390],[51.692265,75.302178]]},
+  {price:'1100 тг', cost:1100, color:'#e91e8c', pts:[[51.753848,75.264685],[51.767502,75.338139],[51.699079,75.372363],[51.685425,75.298909]]},
+  {price:'1500 тг', cost:1500, color:'#e74c3c', pts:[[51.758412,75.255712],[51.774341,75.341408],[51.694515,75.381336],[51.678585,75.295640]]},
+];
+
+function pipCheck(point, polygon) {
+  let inside = false;
+  const x = point[0], y = point[1];
+  for (let i = 0, j = polygon.length-1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0], yi = polygon[i][1];
+    const xj = polygon[j][0], yj = polygon[j][1];
+    if (((yi > y) !== (yj > y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi))
+      inside = !inside;
+  }
+  return inside;
+}
+
+function getDeliveryZone(lat, lng) {
+  for (let z of DELIVERY_ZONES_DATA) {
+    if (pipCheck([lat, lng], z.pts)) return z;
+  }
+  return null;
+}
+
 // ── ГЕОЛОКАЦИЯ И КАРТА ───────────────────────────────────────────────
 let map = null;
 let marker = null;
 let mapVisible = false;
 
-function setAddress(addr) {
+function setAddress(addr, lat, lng) {
   document.getElementById('addressInput').value = addr;
   const status = document.getElementById('geoStatus');
   status.style.display = 'block';
   status.style.color = 'green';
   status.textContent = '✅ ' + addr;
+
+  // Определяем зону доставки и обновляем корзину
+  if (lat && lng) {
+    const zone = getDeliveryZone(lat, lng);
+    if (zone) {
+      deliveryCost = parseInt(zone.price);
+      status.textContent += ' — доставка ' + zone.price;
+    } else {
+      deliveryCost = 0;
+      status.textContent += ' — вне зоны доставки';
+      status.style.color = 'red';
+    }
+  }
 }
 
 function showGeoStatus(msg, color) {
@@ -972,7 +1016,7 @@ function getGeo() {
       const { latitude: lat, longitude: lng } = pos.coords;
       showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
       const addr = await reverseGeocode(lat, lng);
-      setAddress(addr);
+      setAddress(addr, lat, lng);
       // Открываем карту с пином на текущей позиции
       if (!mapVisible) toggleMap();
       setTimeout(() => {
@@ -1003,8 +1047,49 @@ function toggleMap() {
     // Инициализируем карту — центр Экибастуз
     setTimeout(() => {
       map = L.map('map', {attributionControl: false}).setView([51.7167, 75.3667], 13);
+
+      // ── Зоны доставки ──────────────────────────────────────────
+      const DELIVERY_ZONES = [
+        {price:'600 тг',  color:'#2ecc71', pts:[[51.731028,75.309551],[51.733304,75.321793],[51.721900,75.327497],[51.719624,75.315255]]},
+        {price:'700 тг',  color:'#f1c40f', pts:[[51.735592,75.300578],[51.740143,75.325062],[51.717336,75.336470],[51.712784,75.311986]]},
+        {price:'800 тг',  color:'#9b59b6', pts:[[51.740156,75.291604],[51.746983,75.328332],[51.712771,75.345444],[51.705945,75.308716]]},
+        {price:'900 тг',  color:'#3498db', pts:[[51.744720,75.282631],[51.753822,75.331601],[51.708207,75.354417],[51.699105,75.305447]]},
+        {price:'1000 тг', color:'#F4821F', pts:[[51.749284,75.273658],[51.760662,75.334870],[51.703643,75.363390],[51.692265,75.302178]]},
+        {price:'1100 тг', color:'#e91e8c', pts:[[51.753848,75.264685],[51.767502,75.338139],[51.699079,75.372363],[51.685425,75.298909]]},
+        {price:'1500 тг', color:'#e74c3c', pts:[[51.758412,75.255712],[51.774341,75.341408],[51.694515,75.381336],[51.678585,75.295640]]},
+      ];
+
+      DELIVERY_ZONES.slice().reverse().forEach(z => {
+        L.polygon(z.pts, {
+          color: z.color, weight: 2,
+          fillColor: z.color, fillOpacity: 0.10,
+          dashArray: '6,4'
+        }).addTo(map).bindPopup(
+          `<b>Доставка: ${z.price}</b>`
+        );
+      });
+
+      // Определяем зону по координатам
+      function getDeliveryZone(lat, lng) {
+        function pip(point, polygon) {
+          let inside = false;
+          const x = point[0], y = point[1];
+          for (let i = 0, j = polygon.length-1; i < polygon.length; j = i++) {
+            const xi = polygon[i][0], yi = polygon[i][1];
+            const xj = polygon[j][0], yj = polygon[j][1];
+            if (((yi > y) !== (yj > y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi))
+              inside = !inside;
+          }
+          return inside;
+        }
+        for (let z of DELIVERY_ZONES) {
+          if (pip([lat, lng], z.pts)) return z;
+        }
+        return null;
+      }
+      window.getDeliveryZone = getDeliveryZone;
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org">OpenStreetMap</a>',
+        attribution: '',
         maxZoom: 19,
       }).addTo(map);
 
@@ -1014,7 +1099,7 @@ function toggleMap() {
         else marker = L.marker([lat, lng]).addTo(map);
         showGeoStatus('⏳ Получаем адрес...', 'var(--orange)');
         const addr = await reverseGeocode(lat, lng);
-        setAddress(addr);
+        setAddress(addr, lat, lng);
       });
     }, 100);
   } else if (mapVisible && map) {
