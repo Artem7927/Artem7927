@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AlcoDelivery — Панель владельца</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --card:#1e1e1e; --card2:#252525;
+    --border:#2a2a2a; --text:#f0f0f0; --muted:#777;
+    --gold:#F2A900; --red:#D42B2B; --green:#27AE60; --blue:#3498db;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'Montserrat',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* LOGIN */
+  #loginScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:24px; background:linear-gradient(135deg,#0a0a0a,#1a0a0a); }
+  .login-logo { width:80px; height:80px; background:var(--red); border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:20px; box-shadow:0 0 40px rgba(212,43,43,0.4); }
+  .login-title { font-size:22px; font-weight:900; margin-bottom:6px; }
+  .login-sub { font-size:12px; color:var(--muted); margin-bottom:32px; letter-spacing:2px; text-transform:uppercase; }
+  .login-input { width:100%; max-width:320px; padding:16px; background:var(--card); border:1.5px solid var(--border); border-radius:14px; color:var(--text); font-family:'Montserrat'; font-size:16px; font-weight:700; outline:none; text-align:center; letter-spacing:4px; margin-bottom:12px; }
+  .login-input:focus { border-color:var(--red); }
+  .login-btn { width:100%; max-width:320px; padding:16px; background:var(--red); border:none; border-radius:14px; color:#fff; font-family:'Montserrat'; font-size:15px; font-weight:800; cursor:pointer; }
+  .login-error { color:var(--red); font-size:12px; font-weight:700; margin-top:10px; display:none; }
+
+  /* DASHBOARD */
+  #dashboard { display:none; }
+  .top-bar { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .top-logo { font-size:11px; font-weight:900; color:var(--red); letter-spacing:2px; text-transform:uppercase; }
+  .top-badge { background:var(--red); color:#fff; font-size:9px; font-weight:800; padding:2px 8px; border-radius:20px; letter-spacing:1px; }
+  .logout-btn { background:var(--card); border:1px solid var(--border); color:var(--muted); font-family:'Montserrat'; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; }
+  .content { padding:16px; max-width:600px; margin:0 auto; }
+
+  .loading-bar { height:3px; background:var(--red); width:100%; position:fixed; top:0; left:0; z-index:9999; display:none; animation:loading 1.5s ease infinite; }
+  @keyframes loading { 0%{width:0} 50%{width:70%} 100%{width:100%} }
+
+  .refresh-btn { background:var(--card); border:1px solid var(--border); color:var(--text); font-family:'Montserrat'; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+
+  .period-tabs { display:flex; gap:6px; margin-bottom:16px; margin-top:16px; }
+  .period-tab { flex:1; padding:8px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; color:var(--muted); font-family:'Montserrat'; font-size:12px; font-weight:700; cursor:pointer; text-align:center; }
+  .period-tab.active { background:rgba(212,43,43,0.15); border-color:var(--red); color:var(--red); }
+
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .stat-card { background:var(--card); border-radius:14px; padding:14px; border:1px solid var(--border); }
+  .stat-label { font-size:10px; color:var(--muted); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-size:20px; font-weight:900; }
+  .stat-value.gold { color:var(--gold); }
+  .stat-value.green { color:var(--green); }
+  .stat-value.red { color:var(--red); }
+  .stat-value.blue { color:var(--blue); }
+  .stat-sub { font-size:10px; color:var(--muted); margin-top:3px; font-weight:600; }
+
+  .invoice-btn { width:100%; padding:14px; margin-bottom:16px; background:linear-gradient(135deg,var(--gold),#d4920a); border:none; border-radius:14px; color:#000; font-family:'Montserrat'; font-size:14px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+
+  .section-title { font-size:11px; font-weight:800; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+
+  .order-card { background:var(--card); border-radius:14px; border:1px solid var(--border); margin-bottom:10px; overflow:hidden; }
+  .order-head { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; cursor:pointer; border-bottom:1px solid transparent; }
+  .order-card.open .order-head { border-color:var(--border); }
+  .order-num { font-size:13px; font-weight:800; color:var(--gold); }
+  .order-meta { font-size:10px; color:var(--muted); margin-top:2px; font-weight:600; }
+  .order-total { font-size:14px; font-weight:900; }
+  .order-commission { font-size:10px; color:var(--red); font-weight:700; }
+  .order-status { font-size:9px; font-weight:800; padding:3px 8px; border-radius:6px; text-transform:uppercase; letter-spacing:0.5px; }
+  .status-new { background:rgba(52,152,219,0.2); color:var(--blue); }
+  .status-paid { background:rgba(39,174,96,0.2); color:var(--green); }
+
+  .order-body { display:none; padding:12px 14px; }
+  .order-card.open .order-body { display:block; }
+  .order-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+  .order-row span:first-child { color:var(--muted); font-weight:600; }
+  .order-row span:last-child { font-weight:700; }
+  .order-items-list { margin:8px 0; padding:8px; background:var(--card2); border-radius:8px; }
+  .order-item-row { font-size:11px; color:var(--muted); padding:2px 0; font-weight:600; }
+  .order-divider { height:1px; background:var(--border); margin:8px 0; }
+  .commission-row { display:flex; justify-content:space-between; }
+  .commission-row .label { font-size:11px; color:var(--red); font-weight:700; }
+  .commission-row .val { font-size:13px; color:var(--red); font-weight:900; }
+  .store-row { display:flex; justify-content:space-between; margin-top:4px; }
+  .store-row .label { font-size:11px; color:var(--green); font-weight:700; }
+  .store-row .val { font-size:13px; color:var(--green); font-weight:900; }
+
+  .mark-paid-btn { width:100%; margin-top:10px; padding:10px; background:rgba(39,174,96,0.15); border:1.5px solid var(--green); border-radius:10px; color:var(--green); font-family:'Montserrat'; font-size:12px; font-weight:800; cursor:pointer; }
+  .mark-paid-btn.paid { background:rgba(39,174,96,0.08); color:var(--muted); border-color:var(--border); cursor:default; }
+
+  .empty { text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty-icon { font-size:48px; margin-bottom:12px; }
+  .empty-text { font-size:14px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loadingBar"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">📊</div>
+  <div class="login-title">AlcoDelivery</div>
+  <div class="login-sub">Панель владельца платформы</div>
+  <input class="login-input" type="password" id="passInput" placeholder="••••••" maxlength="30"
+    onkeydown="if(event.key==='Enter')tryLogin()">
+  <button class="login-btn" onclick="tryLogin()">Войти</button>
+  <div class="login-error" id="loginError">Неверный пароль</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="top-bar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div>
+        <div class="top-logo">AlcoDelivery</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">Панель владельца</div>
+      </div>
+      <div class="top-badge">ADMIN</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="refresh-btn" onclick="loadOrders()">🔄 Обновить</button>
+      <button class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="period-tabs">
+      <button class="period-tab active" onclick="setPeriod('today',this)">Сегодня</button>
+      <button class="period-tab" onclick="setPeriod('week',this)">Неделя</button>
+      <button class="period-tab" onclick="setPeriod('month',this)">Месяц</button>
+      <button class="period-tab" onclick="setPeriod('all',this)">Всё время</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Заказов</div>
+        <div class="stat-value blue" id="statOrders">—</div>
+        <div class="stat-sub" id="statOrdersSub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Оборот</div>
+        <div class="stat-value gold" id="statRevenue">—</div>
+        <div class="stat-sub">сумма заказов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Комиссия 10%</div>
+        <div class="stat-value red" id="statCommission">—</div>
+        <div class="stat-sub" id="statUnpaid"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Получено</div>
+        <div class="stat-value green" id="statPaid">—</div>
+        <div class="stat-sub">оплачено магазином</div>
+      </div>
+    </div>
+
+    <button class="invoice-btn" onclick="sendInvoice()">
+      💬 Выставить счёт магазину в WhatsApp
+    </button>
+
+    <div class="section-title">
+      <span>Заказы</span>
+      <span id="ordersCount" style="color:var(--muted)"></span>
+    </div>
+    <div id="ordersList"></div>
+  </div>
+</div>
+
+<script>
+const SERVER_URL    = 'https://alcodelivery-db-production.up.railway.app';
+const STORE_WA      = '77786723500';
+const PLATFORM_NAME = 'AlcoDelivery';
+
+let currentPeriod = 'today';
+let allOrders     = [];
+let adminPassword = '';
+
+// ── АВТОРИЗАЦИЯ ──────────────────────────────────────
+async function tryLogin() {
+  const pass = document.getElementById('passInput').value.trim();
+  if (!pass) return;
+  try {
+    showLoading(true);
+    const res  = await fetch(`${SERVER_URL}/auth/admin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pass }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      adminPassword = pass;
+      sessionStorage.setItem('admin_auth', pass);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadOrders();
+    } else {
+      showLoginError('Неверный пароль');
+    }
+  } catch (e) {
+    showLoginError('Сервер недоступен');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg || 'Неверный пароль';
+  el.style.display = 'block';
+  document.getElementById('passInput').value = '';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function logout() {
+  sessionStorage.removeItem('admin_auth');
+  location.reload();
+}
+
+// Автовход если сессия есть
+const savedPass = sessionStorage.getItem('admin_auth');
+if (savedPass) {
+  adminPassword = savedPass;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadOrders();
+}
+
+// ── ЗАГРУЗКА ─────────────────────────────────────────
+async function loadOrders() {
+  try {
+    showLoading(true);
+    const res  = await fetch(`${SERVER_URL}/orders?role=admin&password=${encodeURIComponent(adminPassword)}`);
+    const data = await res.json();
+    if (!data.ok) { showLoginError('Ошибка доступа'); return; }
+    allOrders = (data.orders || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    render();
+  } catch (e) {
+    document.getElementById('ordersList').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Сервер недоступен.<br>Проверьте подключение.</div></div>`;
+  } finally {
+    showLoading(false);
+  }
+}
+
+function showLoading(v) {
+  document.getElementById('loadingBar').style.display = v ? 'block' : 'none';
+}
+
+// ── ФИЛЬТР ───────────────────────────────────────────
+function getFilteredOrders() {
+  const now = new Date();
+  return allOrders.filter(o => {
+    const d = new Date(o.createdAt);
+    if (currentPeriod === 'today')  return d.toDateString() === now.toDateString();
+    if (currentPeriod === 'week')   return d >= new Date(now - 7*24*60*60*1000);
+    if (currentPeriod === 'month')  return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    return true;
+  });
+}
+
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── РЕНДЕР ───────────────────────────────────────────
+function render() {
+  const orders = getFilteredOrders();
+  renderStats(orders);
+  renderOrders(orders);
+}
+
+function renderStats(orders) {
+  const total      = orders.reduce((s,o) => s+o.orderTotal, 0);
+  const commission = orders.reduce((s,o) => s+o.commission, 0);
+  const paid       = orders.filter(o=>o.commissionPaid).reduce((s,o) => s+o.commission, 0);
+  const unpaid     = commission - paid;
+  const labels     = { today:'за сегодня', week:'за 7 дней', month:'за месяц', all:'за всё время' };
+
+  document.getElementById('statOrders').textContent     = orders.length;
+  document.getElementById('statRevenue').textContent    = total.toLocaleString() + ' ₸';
+  document.getElementById('statCommission').textContent = commission.toLocaleString() + ' ₸';
+  document.getElementById('statPaid').textContent       = paid.toLocaleString() + ' ₸';
+  document.getElementById('statOrdersSub').textContent  = labels[currentPeriod];
+  document.getElementById('statUnpaid').textContent     = `не получено: ${unpaid.toLocaleString()} ₸`;
+  document.getElementById('ordersCount').textContent    = orders.length + ' шт';
+}
+
+function renderOrders(orders) {
+  const list = document.getElementById('ordersList');
+  if (!orders.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Заказов нет</div></div>`;
+    return;
+  }
+  list.innerHTML = orders.map(o => {
+    const itemsHtml = (o.items||[]).map(i =>
+      `<div class="order-item-row">• ${i.emoji||''} ${i.name} ×${i.qty} = ${i.sum.toLocaleString()} ₸</div>`
+    ).join('');
+    return `
+    <div class="order-card" id="oc-${o.id}">
+      <div class="order-head" onclick="toggleOrder('${o.id}')">
+        <div>
+          <div class="order-num">${o.id}</div>
+          <div class="order-meta">${o.date} ${o.time} · ${o.storeId}</div>
+          <div class="order-meta">${o.client} · ${o.phone}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="order-total">${o.orderTotal.toLocaleString()} ₸</div>
+          <div class="order-commission">−${o.commission.toLocaleString()} ₸ ком.</div>
+          <div style="margin-top:4px">
+            <span class="order-status ${o.commissionPaid ? 'status-paid' : 'status-new'}">
+              ${o.commissionPaid ? '✅ оплачено' : '🔵 новый'}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="order-body">
+        <div class="order-row"><span>Адрес</span><span>${o.address}</span></div>
+        <div class="order-row"><span>Оплата</span><span>${o.payMethod==='kaspi'?'Kaspi':'Наличные'}</span></div>
+        <div class="order-row"><span>Доставка</span><span>${o.deliveryCost>0?o.deliveryCost.toLocaleString()+' ₸':'Самовывоз'}</span></div>
+        ${o.comment?`<div class="order-row"><span>Комментарий</span><span>${o.comment}</span></div>`:''}
+        <div class="order-divider"></div>
+        <div class="order-items-list">${itemsHtml}</div>
+        <div class="order-divider"></div>
+        <div class="order-row" style="font-size:13px">
+          <span>Итого заказ</span>
+          <span style="color:var(--gold);font-weight:900">${o.orderTotal.toLocaleString()} ₸</span>
+        </div>
+        <div class="commission-row">
+          <span class="label">📊 Комиссия платформы 10%</span>
+          <span class="val">−${o.commission.toLocaleString()} ₸</span>
+        </div>
+        <div class="store-row">
+          <span class="label">💰 Магазину к получению</span>
+          <span class="val">${o.storeAmount.toLocaleString()} ₸</span>
+        </div>
+        <button class="mark-paid-btn ${o.commissionPaid?'paid':''}"
+          onclick="markPaid('${o.id}')" ${o.commissionPaid?'disabled':''}>
+          ${o.commissionPaid ? '✅ Комиссия получена' : '✅ Отметить как полученную'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleOrder(id) {
+  document.getElementById('oc-' + id)?.classList.toggle('open');
+}
+
+async function markPaid(orderId) {
+  try {
+    showLoading(true);
+    await fetch(`${SERVER_URL}/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commissionPaid: true, role: 'admin', password: adminPassword }),
+      signal: AbortSignal.timeout(6000),
+    });
+    await loadOrders();
+  } catch (e) {
+    alert('Ошибка обновления. Проверьте подключение.');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ── ВЫСТАВИТЬ СЧЁТ ────────────────────────────────────
+function sendInvoice() {
+  const orders       = getFilteredOrders();
+  const unpaidOrders = orders.filter(o => !o.commissionPaid);
+  const totalComm    = unpaidOrders.reduce((s,o) => s+o.commission, 0);
+  const totalRev     = unpaidOrders.reduce((s,o) => s+o.orderTotal, 0);
+
+  if (!unpaidOrders.length) { alert('Нет неоплаченных заказов в выбранном периоде.'); return; }
+
+  const labels    = { today:'за сегодня', week:'за 7 дней', month:'за месяц', all:'за всё время' };
+  const orderList = unpaidOrders.map(o =>
+    `• ${o.id} (${o.date}) — ${o.orderTotal.toLocaleString()} ₸ → комиссия ${o.commission.toLocaleString()} ₸`
+  ).join('\n');
+
+  const now    = new Date().toLocaleDateString('ru');
+  const waText =
+    `📊 *СЧЁТ НА КОМИССИЮ — ${PLATFORM_NAME}*\n` +
+    `📅 ${now} · Период: ${labels[currentPeriod]}\n\n` +
+    `*Заказы (${unpaidOrders.length} шт):*\n${orderList}\n\n` +
+    `─────────────────────\n` +
+    `🛒 Общий оборот: ${totalRev.toLocaleString()} ₸\n` +
+    `📊 Комиссия платформы 10%:\n` +
+    `*К оплате: ${totalComm.toLocaleString()} ₸*\n\n` +
+    `💳 Оплата на Kaspi: +7 700 123 45 67\n` +
+    `После оплаты — пришлите скриншот ✅`;
+
+  window.open(`https://wa.me/${STORE_WA}?text=${encodeURIComponent(waText)}`, '_blank');
+}
+</script>
+</body>
+</html>
