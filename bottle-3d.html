@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Qazaq Vodka 3D</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#08080f; overflow:hidden; font-family:system-ui; }
+  canvas { display:block; width:100vw; height:100vh; touch-action:none; }
+  .ui {
+    position:fixed; bottom:0; left:0; right:0;
+    background:linear-gradient(0deg,rgba(8,8,15,0.99) 0%,rgba(8,8,15,0.9) 70%,transparent 100%);
+    padding:16px 20px 30px; text-align:center;
+  }
+  .name  { font-size:20px; font-weight:900; color:#fff; letter-spacing:0.5px; }
+  .sub   { font-size:11px; color:#3a3a5a; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
+  .price { font-size:30px; font-weight:900; color:#F2A900; margin:8px 0 14px; }
+  .btns  { display:flex; gap:10px; max-width:360px; margin:0 auto; }
+  .b1 { flex:1; padding:14px; background:#111122; border:1px solid #222233; border-radius:14px; color:#555; font-size:13px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .b2 { flex:2; padding:14px; background:#D42B2B; border:none; border-radius:14px; color:#fff; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit; }
+  .topbar { position:fixed; top:0; left:0; right:0; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(180deg,rgba(8,8,15,0.85),transparent); }
+  .tbrand { font-size:11px; font-weight:900; color:#D42B2B; letter-spacing:2px; }
+  .thint  { font-size:10px; color:#222244; font-weight:700; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="topbar">
+  <div class="tbrand">ALCOMARKET 1</div>
+  <div class="thint">↻ крути пальцем</div>
+</div>
+<div class="ui">
+  <div class="name">Qazaq Standard Vodka</div>
+  <div class="sub">700 мл · 40% ALC · Казахстан</div>
+  <div class="price">2 400 ₸</div>
+  <div class="btns">
+    <button class="b1" onclick="history.back()">← Назад</button>
+    <button class="b2">🛒 В корзину</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const W = window.innerWidth, H = window.innerHeight;
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+renderer.setSize(W,H);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.physicallyCorrectLights = true;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.4;
+
+const scene  = new THREE.Scene();
+scene.background = new THREE.Color(0x08080f);
+
+const camera = new THREE.PerspectiveCamera(42, W/H, 0.01, 100);
+camera.position.set(0, 0.8, 5.2);
+camera.lookAt(0, 0.5, 0);
+
+// ── СВЕТ ────────────────────────────────────────────
+// Главный свет — спереди-сверху справа (имитация студийного)
+const key = new THREE.DirectionalLight(0xfff5ee, 4.0);
+key.position.set(3, 5, 5);
+key.castShadow = true;
+scene.add(key);
+
+// Заполняющий свет — слева
+const fill = new THREE.DirectionalLight(0xaabbff, 1.5);
+fill.position.set(-4, 2, 2);
+scene.add(fill);
+
+// Контровой свет — сзади снизу (для объёма)
+const rim = new THREE.DirectionalLight(0xffffff, 1.8);
+rim.position.set(-1, 6, -5);
+scene.add(rim);
+
+// Тёплый снизу
+const bot = new THREE.PointLight(0x3344aa, 2.0, 10);
+bot.position.set(0, -3, 3);
+scene.add(bot);
+
+const amb = new THREE.AmbientLight(0x111133, 3.0);
+scene.add(amb);
+
+// ── ПРОФИЛЬ БУТЫЛКИ QAZAQ ──────────────────────────
+// Высокая водочная бутылка с прямыми стенками
+const pts = [
+  // ДНО
+  new THREE.Vector2(0.000, 0.000),
+  new THREE.Vector2(0.220, 0.000),
+  new THREE.Vector2(0.240, 0.020),
+  new THREE.Vector2(0.245, 0.060),
+  // ТЕЛО — прямое, почти цилиндр
+  new THREE.Vector2(0.245, 0.150),
+  new THREE.Vector2(0.248, 0.400),
+  new THREE.Vector2(0.250, 0.700),
+  new THREE.Vector2(0.250, 1.000),
+  new THREE.Vector2(0.250, 1.200),
+  new THREE.Vector2(0.248, 1.380),
+  // ПЛЕЧО — плавное сужение
+  new THREE.Vector2(0.244, 1.480),
+  new THREE.Vector2(0.235, 1.580),
+  new THREE.Vector2(0.210, 1.680),
+  new THREE.Vector2(0.175, 1.770),
+  new THREE.Vector2(0.135, 1.840),
+  new THREE.Vector2(0.095, 1.890),
+  // ГОРЛЫШКО — тонкое прямое
+  new THREE.Vector2(0.072, 1.920),
+  new THREE.Vector2(0.068, 2.000),
+  new THREE.Vector2(0.066, 2.150),
+  new THREE.Vector2(0.065, 2.300),
+  new THREE.Vector2(0.065, 2.420),
+  // ВЕНЧИК горлышка
+  new THREE.Vector2(0.075, 2.435),
+  new THREE.Vector2(0.075, 2.475),
+  new THREE.Vector2(0.065, 2.490),
+  new THREE.Vector2(0.065, 2.520),
+];
+
+const bottleGeo = new THREE.LatheGeometry(pts, 128);
+
+// Матовое белое стекло с физическими свойствами
+const glassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xe8f0ff,
+  transparent: true,
+  opacity: 0.75,
+  roughness: 0.05,
+  metalness: 0.0,
+  transmission: 0.55,
+  thickness: 1.2,
+  ior: 1.45,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.05,
+  side: THREE.DoubleSide,
+  envMapIntensity: 2.0,
+});
+
+const bottle = new THREE.Mesh(bottleGeo, glassMat);
+bottle.castShadow = true;
+bottle.position.y = -1.3;
+scene.add(bottle);
+
+// ── ПРОБКА (серебро) ─────────────────────────────────
+const capMat = new THREE.MeshPhysicalMaterial({
+  color: 0x9aabb8,
+  roughness: 0.15,
+  metalness: 0.95,
+  clearcoat: 0.5,
+});
+
+// Корпус пробки
+const capGeo = new THREE.CylinderGeometry(0.068, 0.072, 0.22, 64);
+const capMesh = new THREE.Mesh(capGeo, capMat);
+capMesh.position.set(0, 1.27, 0);
+scene.add(capMesh);
+
+// Верхушка пробки (скруглённая)
+const capDomeGeo = new THREE.SphereGeometry(0.068, 64, 32, 0, Math.PI*2, 0, Math.PI/2);
+const capDome    = new THREE.Mesh(capDomeGeo, capMat);
+capDome.position.set(0, 1.38, 0);
+scene.add(capDome);
+
+// Горизонтальные рифли на пробке
+for(let i=0; i<4; i++) {
+  const rGeo = new THREE.TorusGeometry(0.071, 0.003, 8, 64);
+  const r    = new THREE.Mesh(rGeo, capMat);
+  r.position.set(0, 1.18 + i*0.05, 0);
+  scene.add(r);
+}
+
+// ── ФОЛЬГА под пробкой ─────────────────────────────────
+const foilMat = new THREE.MeshPhysicalMaterial({
+  color: 0xb8ccd8,
+  roughness: 0.2,
+  metalness: 0.88,
+});
+const foilGeo = new THREE.CylinderGeometry(0.073, 0.068, 0.06, 64);
+const foil    = new THREE.Mesh(foilGeo, foilMat);
+foil.position.set(0, 1.15, 0);
+scene.add(foil);
+
+// ── ЭТИКЕТКА ─────────────────────────────────────────
+// Белая бумага этикетки
+const labelMat = new THREE.MeshStandardMaterial({
+  color: 0xf2f5ff,
+  roughness: 0.85,
+  metalness: 0.0,
+});
+
+// Основная этикетка — чуть выпуклый цилиндр поверх бутылки
+const labelGeo = new THREE.CylinderGeometry(0.252, 0.252, 1.05, 128, 1, true,
+  -Math.PI * 0.08, Math.PI * 2.16);
+const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+labelMesh.position.set(0, 0.18, 0);
+scene.add(labelMesh);
+
+// Синяя полоса СВЕРХУ этикетки
+const blueMat = new THREE.MeshStandardMaterial({ color: 0x0d2080, roughness: 0.7 });
+
+const topStripeGeo = new THREE.CylinderGeometry(0.253, 0.253, 0.055, 128, 1, true,
+  -Math.PI * 0.08, Math.PI * 2.16);
+const topStripe = new THREE.Mesh(topStripeGeo, blueMat);
+topStripe.position.set(0, 0.677, 0);
+scene.add(topStripe);
+
+// Синяя полоса СНИЗУ этикетки
+const botStripeGeo = new THREE.CylinderGeometry(0.253, 0.253, 0.055, 128, 1, true,
+  -Math.PI * 0.08, Math.PI * 2.16);
+const botStripe = new THREE.Mesh(botStripeGeo, blueMat);
+botStripe.position.set(0, -0.297, 0);
+scene.add(botStripe);
+
+// Тонкие синие линии (декоративные)
+const lineMat = new THREE.MeshStandardMaterial({ color: 0x1a35a0, roughness: 0.6 });
+[-0.24, -0.16, 0.62, 0.70].forEach(y => {
+  const lg = new THREE.CylinderGeometry(0.2525, 0.2525, 0.012, 128, 1, true,
+    -Math.PI*0.08, Math.PI*2.16);
+  const lm = new THREE.Mesh(lg, lineMat);
+  lm.position.set(0, y, 0);
+  scene.add(lm);
+});
+
+// ── МЕДАЛЬОН (круглый герб) ─────────────────────────
+const medalMat = new THREE.MeshPhysicalMaterial({
+  color: 0x8899aa,
+  roughness: 0.2,
+  metalness: 0.9,
+  clearcoat: 0.8,
+});
+const medalGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.018, 64);
+const medal    = new THREE.Mesh(medalGeo, medalMat);
+medal.position.set(0, 0.45, 0.253);
+medal.rotation.x = Math.PI / 2;
+scene.add(medal);
+
+// Внутренний рельеф медальона
+const innerMat = new THREE.MeshPhysicalMaterial({
+  color: 0x6677aa,
+  roughness: 0.3,
+  metalness: 0.85,
+});
+const innerGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.014, 64);
+const inner    = new THREE.Mesh(innerGeo, innerMat);
+inner.position.set(0, 0.45, 0.256);
+inner.rotation.x = Math.PI / 2;
+scene.add(inner);
+
+// Кольцо медальона
+const ringGeo = new THREE.TorusGeometry(0.063, 0.006, 12, 64);
+const ring    = new THREE.Mesh(ringGeo, medalMat);
+ring.position.set(0, 0.45, 0.252);
+scene.add(ring);
+
+// ── ТЕКСТ "QAZAQ" — плоские буквы ─────────────────────
+function box(w, h, d, x, y, z, mat) {
+  const g = new THREE.BoxGeometry(w, h, d);
+  const m = new THREE.Mesh(g, mat);
+  m.position.set(x, y, z);
+  return m;
+}
+
+const textMat = new THREE.MeshStandardMaterial({ color: 0x0d2080, roughness: 0.5 });
+const tg = new THREE.Group();
+
+// Q — левая сторона (−)
+// Буква Q: прямоугольник с дыркой — делаем из 4 планок
+function addLetter_Q(cx, y, z, mat, g) {
+  const d=0.02, w=0.055, h=0.07, t=0.014;
+  g.add(Object.assign(box(w,t,d,cx,y+h/2,z,mat))); // top
+  g.add(Object.assign(box(w,t,d,cx,y-h/2,z,mat))); // bot
+  g.add(Object.assign(box(t,h,d,cx-w/2+t/2,y,z,mat))); // left
+  g.add(Object.assign(box(t,h,d,cx+w/2-t/2,y,z,mat))); // right
+  // хвостик Q
+  g.add(Object.assign(box(0.025,t,d,cx+0.018,y-h/2+0.008,z,mat)));
+}
+function addLetter_A(cx, y, z, mat, g) {
+  const d=0.02, w=0.05, h=0.07, t=0.014;
+  g.add(Object.assign(box(w,t,d,cx,y+h/2,z,mat)));
+  g.add(Object.assign(box(t,h,d,cx-w/2+t/2,y,z,mat)));
+  g.add(Object.assign(box(t,h,d,cx+w/2-t/2,y,z,mat)));
+  g.add(Object.assign(box(w,t,d,cx,y,z,mat)));
+}
+function addLetter_Z(cx, y, z, mat, g) {
+  const d=0.02, w=0.05, h=0.07, t=0.014;
+  g.add(Object.assign(box(w,t,d,cx,y+h/2,z,mat)));
+  g.add(Object.assign(box(w,t,d,cx,y-h/2,z,mat)));
+  // диагональ Z — несколько ступеней
+  for(let i=0;i<4;i++){
+    g.add(Object.assign(box(w*0.6,t,d,cx-0.01+i*0.008,y+h/2-t-(i*(h-t*2)/3),z,mat)));
+  }
+}
+
+const z0 = 0.256;
+const y0 = 0.10;
+
+// QAZAQ — 5 букв, расстояние между центрами 0.075
+addLetter_Q(-0.155, y0, z0, textMat, tg);
+addLetter_A(-0.075, y0, z0, textMat, tg);
+addLetter_Z( 0.000, y0, z0, textMat, tg);
+addLetter_A( 0.075, y0, z0, textMat, tg);
+addLetter_Q( 0.155, y0, z0, textMat, tg);
+
+// STANDARD подпись
+tg.add(box(0.20, 0.010, 0.015, 0, y0-0.055, z0, textMat));
+tg.add(box(0.14, 0.007, 0.012, 0, y0-0.068, z0, textMat));
+
+// VODKA
+tg.add(box(0.13, 0.009, 0.013, 0, y0-0.115, z0, textMat));
+
+scene.add(tg);
+
+// ── ПОЛ / ОТРАЖЕНИЕ ───────────────────────────────────
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x050510, roughness: 0.05, metalness: 0.9,
+});
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMat);
+floor.rotation.x = -Math.PI/2;
+floor.position.y = -1.52;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Свечение под бутылкой
+const glowMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(2, 2),
+  new THREE.MeshBasicMaterial({ color:0x1133cc, transparent:true, opacity:0.08 })
+);
+glowMesh.rotation.x = -Math.PI/2;
+glowMesh.position.y = -1.51;
+scene.add(glowMesh);
+
+// ── ОКРУЖЕНИЕ (env map для отражений) ─────────────────
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+const envScene = new THREE.RoomEnvironment();
+const envTexture = pmrem.fromScene(envScene).texture;
+scene.environment = envTexture;
+glassMat.envMap = envTexture;
+capMat.envMap   = envTexture;
+medalMat.envMap = envTexture;
+
+// ── ЧАСТИЦЫ ───────────────────────────────────────────
+const pGeo = new THREE.BufferGeometry();
+const pN = 60, pPos = new Float32Array(pN*3);
+for(let i=0;i<pN;i++){
+  pPos[i*3]  = (Math.random()-0.5)*6;
+  pPos[i*3+1]= (Math.random()-0.5)*6;
+  pPos[i*3+2]= (Math.random()-0.5)*3-0.5;
+}
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+scene.add(new THREE.Points(pGeo,
+  new THREE.PointsMaterial({color:0x3355bb,size:0.022,transparent:true,opacity:0.5})
+));
+
+// ── УПРАВЛЕНИЕ ────────────────────────────────────────
+const group = new THREE.Group();
+group.add(bottle); group.add(capMesh); group.add(capDome);
+group.add(foil); group.add(labelMesh);
+group.add(topStripe); group.add(botStripe);
+group.add(medal); group.add(inner); group.add(ring);
+group.add(tg);
+scene.remove(bottle); scene.remove(capMesh); scene.remove(capDome);
+scene.remove(foil); scene.remove(labelMesh);
+scene.remove(topStripe); scene.remove(botStripe);
+scene.remove(medal); scene.remove(inner); scene.remove(ring);
+scene.remove(tg);
+
+// Пересоздаём с нужным позиционированием
+const bg = new THREE.Group();
+
+// Добавляем все обратно в bg
+[bottle,capMesh,capDome,foil,labelMesh,topStripe,botStripe,medal,inner,ring,tg].forEach(o => bg.add(o));
+
+bg.position.y = -0.15;
+scene.add(bg);
+
+let rotX=0, rotY=0.3, tRX=0, tRY=0.3;
+let drag=false, px=0, py=0, auto=true, zoom=5.2;
+let ltd=0, aTimer=null;
+
+const cv = document.getElementById('c');
+
+cv.addEventListener('mousedown', e => {
+  drag=true; px=e.clientX; py=e.clientY; auto=false; clearTimeout(aTimer);
+});
+cv.addEventListener('mousemove', e => {
+  if(!drag) return;
+  tRY += (e.clientX-px)*0.011; tRX += (e.clientY-py)*0.008;
+  tRX = Math.max(-1.1, Math.min(1.1, tRX));
+  px=e.clientX; py=e.clientY;
+});
+cv.addEventListener('mouseup', () => { drag=false; aTimer=setTimeout(()=>{auto=true;},3500); });
+cv.addEventListener('wheel', e => { zoom=Math.max(2.8,Math.min(7,zoom+e.deltaY*0.004)); });
+
+cv.addEventListener('touchstart', e => {
+  if(e.touches.length===1){
+    drag=true; px=e.touches[0].clientX; py=e.touches[0].clientY;
+    auto=false; clearTimeout(aTimer);
+  } else if(e.touches.length===2){
+    ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  }
+  e.preventDefault();
+},{passive:false});
+
+cv.addEventListener('touchmove', e => {
+  if(e.touches.length===1 && drag){
+    tRY += (e.touches[0].clientX-px)*0.013;
+    tRX += (e.touches[0].clientY-py)*0.010;
+    tRX = Math.max(-1.1, Math.min(1.1, tRX));
+    px=e.touches[0].clientX; py=e.touches[0].clientY;
+  } else if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    zoom=Math.max(2.8,Math.min(7,zoom+(ltd-d)*0.025)); ltd=d;
+  }
+  e.preventDefault();
+},{passive:false});
+
+cv.addEventListener('touchend', () => {
+  drag=false; aTimer=setTimeout(()=>{auto=true;},3500);
+});
+
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  if(auto) tRY += 0.007;
+  rotX += (tRX-rotX)*0.07;
+  rotY += (tRY-rotY)*0.07;
+  bg.rotation.x = rotX;
+  bg.rotation.y = rotY;
+  bg.position.y = -0.15 + Math.sin(t*0.7)*0.025;
+  camera.position.z += (zoom - camera.position.z)*0.07;
+  glowMesh.material.opacity = 0.06 + Math.sin(t*1.2)*0.03;
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+  const w=innerWidth, h=innerHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+});
+</script>
+</body>
+</html>
